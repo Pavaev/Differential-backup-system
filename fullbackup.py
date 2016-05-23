@@ -4,23 +4,23 @@ from datetime import date
 def copy():
 	filelist = parse("files:.*")
 	filelist = filelist[6:]
-	week = parse("weekly:.*")
-	week = week[7:]
-	today = week+'/'+str(date.today())
+	print (filelist)
+	full = parse("full:.*:")
+	full = full[5:len(full)-1]
+	print(full)
+	today = full+'/'+str(date.today())
 	filelist = filelist.split()
-	week = week.replace(" ", "")
-	if os.path.exists(week) == False:
-		os.system("mkdir %s" % week)
+	if os.path.exists(full) == False:
+		os.system("mkdir %s" % full)
 	else:
-		os.system("rm -rf %s/*" % week)
+		os.system("rm -rf %s/*" % full)
 	os.system("touch %s" % today)
 	for file in filelist:
-		subprocess.call(['cp', '-a', file, week])
+		subprocess.call(['cp', '-a', file, full])
 		if os.path.isfile(file) == True:
 			subprocess.call(['md5sum', file], stdout=open(today, 'a'))	
 		else:
 			for d, dirs, files in os.walk(file):
-				print(file)
 				for f in files:
        					path = os.path.join(d,f)
 					print(path)
