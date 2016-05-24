@@ -10,17 +10,17 @@ def check():
 		print('There is an error with logfile! Check your backup.conf')
         log = log.split(':')
         log = log[1]
-        message = 'Starting checking at: '
-        message = message + str(datetime.now())
-        print (message)
-        with open(log, 'a') as file:
-                file.write(message+'\n')
+        message = 'Starting checking... '
+	writemessage(log, message)
+
+	#Find modified files
 	pattern = '.*FAILED$'		
 	copylist = modified_deleted(log,pattern)
+
+	#In case of error with your config
 	if copylist == None:
-		with open(log, 'a') as file:
-			file.write('Cannot find last backup file. Check you backup.conf\n')
-			print('Cannot find last backup file. Check you backup.conf')
+		message = 'Cannot find last backup file. Check you backup.conf'
+		writemessage(log, message)
 		return None	
 	
 	#Print results of modify checking
@@ -28,7 +28,8 @@ def check():
 		message = "Modified files:"
 		printresults(copylist, log, message)
 	else:
-		print('There is no modified files\n')
+		message = 'There is no removed files'
+		writemessage(log,message)
 
 	#Print results of remove checking
 	pattern = '.*FAILED .*'
@@ -37,7 +38,8 @@ def check():
                 message = "Removed files:"
                 printresults(removedlist, log, message)
         else:
-                print('There is no removed files\n')
+                message = 'There is no removed files'
+		writemessage(log,message)
 					
 	newlist = newfiles(log)
 
@@ -46,8 +48,16 @@ def check():
                 message = "New files:"
                 printresults(newlist, log, message)
         else:
-                print('There is no new files\n')
+                message = 'There is no new files'
+		writemessage(log, message)
+	copylist.extend(newlist)
 
+       #Log block
+	message = 'Checking completed'
+	writemessage(log, message)
+
+
+	return copylist
 
 def parsefile(str, parsefile):
         with open(parsefile, 'r') as file:
@@ -124,4 +134,15 @@ def findmd5():
                         md5 = i
         checking = checking+"/"+md5
 	return checking
+
+
+
+def writemessage(log, message):
+	message = str(datetime.now())+ ": " +  message
+        print (message)
+        with open(log, 'a') as file:
+                file.write(message+'\n')
+
+
 	
+check()
