@@ -3,9 +3,11 @@ import re, os, subprocess
 from datetime import datetime
 
 def check():
+	config = 'backup.conf'
+
 
 	#Log block
-	log = parsefile("^logfile:.*", 'backup.conf')
+	log = parsefile("^logfile:.*", config)
 	if log == None:
 		print('There is an error with logfile! Check your backup.conf')
         log = log.split(':')
@@ -15,7 +17,7 @@ def check():
 
 	#Find modified files
 	pattern = '.*FAILED$'		
-	copylist = modified_deleted(log,pattern)
+	copylist = modified_deleted(log,pattern, config)
 
 	#In case of error with your config
 	if copylist == None:
@@ -33,7 +35,7 @@ def check():
 
 	#Print results of remove checking
 	pattern = '.*FAILED .*'
-	removedlist = modified_deleted(log, pattern)
+	removedlist = modified_deleted(log, pattern, config)
 	if len(removedlist)!=0:
                 message = "Removed files:"
                 printresults(removedlist, log, message)
@@ -41,7 +43,7 @@ def check():
                 message = 'There is no removed files'
 		writemessage(log,message)
 					
-	newlist = newfiles(log)
+	newlist = newfiles(log, config)
 
 	#Print results of new files
 	if len(newlist)!=0:
@@ -68,8 +70,8 @@ def parsefile(str, parsefile):
 				return res.group()
 				
 				
-def modified_deleted(log, pattern):
-        checking = findmd5()
+def modified_deleted(log, pattern, config):
+        checking = findmd5(config)
 	
 	if checking==None:
 		return None
@@ -99,10 +101,10 @@ def printresults(list, log, message):
 	print('\n')
 
 
-def newfiles(log):
+def newfiles(log, config):
 	newlist = []
-	md5file = findmd5()
-	filelist = parsefile("^files:.*", 'backup.conf')
+	md5file = findmd5(config)
+	filelist = parsefile("^files:.*", config)
 	filelist = filelist.split(":")
 	filelist = filelist[1]
 	filelist = filelist.split()
@@ -118,14 +120,13 @@ def newfiles(log):
 						newlist.append(path)
                                        	
         return newlist                               		
-def findmd5():
-	checking = parsefile('full:.*', 'backup.conf')
+def findmd5(config):
+	checking = parsefile('full:.*', config)
         if checking == None:
-                print('There is an error with "full:"! Check your backup.conf')
-                with open(log, 'a') as file:
-                        file.write('There is an error with "full:". Check your backup.conf')
+                message = 'There is an error with "full:"! Check your backup.conf'
+		writemessage(message)
         checking = checking.split(":")
-        checking = checking[1]
+        checking = checking[1] + '/fullbackup'
 	if os.path.exists(checking)==False:
 		return None
         md5 = os.listdir(checking)
@@ -144,5 +145,3 @@ def writemessage(log, message):
                 file.write(message+'\n')
 
 
-	
-check()
