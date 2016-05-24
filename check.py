@@ -17,6 +17,11 @@ def check():
                 file.write(message+'\n')
 	pattern = '.*FAILED$'		
 	copylist = modified_deleted(log,pattern)
+	if copylist == None:
+		with open(log, 'a') as file:
+			file.write('Cannot find last backup file. Check you backup.conf\n')
+			print('Cannot find last backup file. Check you backup.conf')
+		return None	
 	
 	#Print results of modify checking
 	if len(copylist)!=0:
@@ -50,12 +55,15 @@ def parsefile(str, parsefile):
                 for line in comp:
                         res = re.match(str,line)
                         if res != None:
-				print (res.group())
-                                return res.group()
+				return res.group()
 				
 				
 def modified_deleted(log, pattern):
         checking = findmd5()
+	
+	if checking==None:
+		return None
+
         p = subprocess.Popen(['md5sum', '-c',checking], stdout=subprocess.PIPE, stderr=open(log, 'a'))
         out = p.stdout.read()
         out = out.split('\n')
@@ -89,8 +97,7 @@ def newfiles(log):
 	filelist = filelist[1]
 	filelist = filelist.split()
 	for file in filelist:
-		print(file)
-               	if os.path.isfile(file) == True:
+	       	if os.path.isfile(file) == True:
                        	if parse('.*'+file*'$', md5file) == None:
 				newlist.append(file)
                	else:
@@ -109,6 +116,8 @@ def findmd5():
                         file.write('There is an error with "full:". Check your backup.conf')
         checking = checking.split(":")
         checking = checking[1]
+	if os.path.exists(checking)==False:
+		return None
         md5 = os.listdir(checking)
         for i in md5:
                 if "md5-" in i:
@@ -116,4 +125,3 @@ def findmd5():
         checking = checking+"/"+md5
 	return checking
 	
-check()
