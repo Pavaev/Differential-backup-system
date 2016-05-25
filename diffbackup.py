@@ -108,13 +108,19 @@ def backup():
                 subprocess.call(["rm", '-rf', newpath], stderr = open(log, 'a'))
 		subprocess.call(["mkdir", "-p", newpath+'/diff'], stderr = open(log, 'a'))
         os.system("touch %s" % today)
-
+	os.system("touch %s" % newpath+'/diff/files.backup')
  #Copy and put data into md5 file
 	message = 'Starting diff backup...'
         writemessage(log,message)
 
         for file in filelist:
-                subprocess.call(['cp', '-a', file, newpath+'/diff'], stderr = open(log, 'a'))
+                p = subprocess.Popen(['cp', '-av', file, newpath+'/diff'], stderr = open(log, 'a'), stdout = subprocess.PIPE)
+		out = p.stdout.read()
+		print(out)
+		with open(log, 'a') as bckfile:
+                        bckfile.write(out)
+                with open(newpath+'/diff/files.backup', 'a') as bckfile:
+                        bckfile.write(out)
                 if os.path.isfile(file) == True:
                         subprocess.call(['md5sum', file], stdout=open(today, 'a'), stderr = open(log, 'a'))
                 else:

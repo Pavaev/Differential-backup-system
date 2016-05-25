@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os,re,subprocess
+import os,re,subprocess, check
 from datetime import date, datetime
 def copy():
 	
@@ -40,21 +40,27 @@ def copy():
 		message = 'Remove old data from backup dir...'
 		writemessage(log, message)
 		subprocess.call(["rm", '-rf', full,'/*'], stderr = open(log, 'a'))
+		subprocess.call(["mkdir", '-p', full], stderr = open(log, 'a'))
 	os.system("touch %s" % today)
+	os.system("touch %s" % full+'/files.backup')
 	#Copy and put data into md5 file
 	message = 'Starting full backup...'
         writemessage(log,message)
 	for file in filelist:
-		subprocess.call(['cp', '-a', file, full], stderr = open(log, 'a'))
+		p = subprocess.Popen(['cp', '-av', file, full], stderr = open(log, 'a'), stdout = subprocess.PIPE)
+		out = p.stdout.read()
+		print(out)
+		with open(log, 'a') as bckfile:
+			bckfile.write(out)
+		with open(full+'/files.backup', 'a') as bckfile:
+			bckfile.write(out)
 		if os.path.isfile(file) == True:
-			print('File:' + file)
 			subprocess.call(['md5sum', file], stdout=open(today, 'a'), stderr = open(log, 'a'))	
 		else:
 			for d, dirs, files in os.walk(file):
 				for f in files:
        					path = os.path.join(d,f)
-					print(path)
-					print('Path: ' + path)
+					
       					subprocess.call(['md5sum', path], stdout=open(today, 'a'), stderr=open(log, 'a'))
 	message = 'Full backup completed'
 	writemessage(log, message)

@@ -30,7 +30,7 @@ def check():
 		message = "Modified files:"
 		printresults(copylist, log, message)
 	else:
-		message = 'There is no removed files'
+		message = 'There is no modified files'
 		writemessage(log,message)
 
 	#Print results of remove checking
