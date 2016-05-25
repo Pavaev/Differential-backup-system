@@ -21,9 +21,9 @@ def check():
 
 	#In case of error with your config
 	if copylist == None:
-		message = 'Cannot find last backup file. Check you backup.conf'
-		writemessage(log, message)
-		return None	
+		message = 'Cannot find last full backup file. Check you backup.conf or make a full backup'
+		return writemessage(log, message)
+			
 	
 	#Print results of modify checking
 	if len(copylist)!=0:
@@ -143,5 +143,6 @@ def writemessage(log, message):
         print (message)
         with open(log, 'a') as file:
                 file.write(message+'\n')
+
 
 

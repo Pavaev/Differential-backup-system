@@ -42,12 +42,10 @@ def copy():
 		subprocess.call(["rm", '-rf', full,'/*'], stderr = open(log, 'a'))
 	os.system("touch %s" % today)
 	#Copy and put data into md5 file
+	message = 'Starting full backup...'
+        writemessage(log,message)
 	for file in filelist:
-		message = 'Starting full backup...'
-		writemessage(log,message)
 		subprocess.call(['cp', '-a', file, full], stderr = open(log, 'a'))
-		message = 'Making md5 file...'
-		writemessage(log, message)
 		if os.path.isfile(file) == True:
 			print('File:' + file)
 			subprocess.call(['md5sum', file], stdout=open(today, 'a'), stderr = open(log, 'a'))	

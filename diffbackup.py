@@ -22,7 +22,7 @@ def backup():
 	print(len(filelist))
 	if len(filelist)==0:
 		message = 'There is no new or modified files for diff backup'
-#		return writemessage(log, message)
+		return writemessage(log, message)
 	
 
 	#If everything is correct, start backup
@@ -41,53 +41,86 @@ def backup():
 	
 
 	#Is there existing backup dirs
+	temp_bpaths = []
 	lastpath = ''
-	if os.path.exists(os.getcwd()+'/lastdiff.log'):
-		with open('lastdiff.log', 'r') as file:
-			lastpath = file.readlines()
-		print (lastpath)
-		if len(lastpath)!=0 and os.path.exists(os.getcwd()+'/'+lastpath.pop()):
-			lastpath = lastpath.pop()
-			
-		else:
-			 lastpath = bpaths[0]
-	else: 
-		lastpath = bpaths[0]				
-		subprocess.call(['mkdir', '-p', 'lastdiff.log'], stderr = open(log, 'a'))		
-	print lastpath	
-			
+	newpath = ''
+	#Find existing paths
+	for bpath in bpaths:
+		if os.path.exists(bpath+'/diff') == True:
+			temp_bpaths.append(bpath)
+	
+	#If there is no existing paths, choose first
+	if len(temp_bpaths)==0:
+		newpath = bpaths[0]
+	else:	#Else find last point of diff backup by date
+		datelist = []
+		for temp in temp_bpaths:
+			datelist.append(os.path.getctime(temp))
+		datelist.sort(reverse = True)
+		lastpath = datelist[0]
+		
 
-  #Make md5 file
-        today = lastpath+"/diff/md5-"+str(date.today())
+		#Find a path by date
+		for temp in temp_bpaths:
+			if os.path.getctime(temp) == lastpath:
+				lastpath = temp
+				break
+		#Find md5 file in last diff backup dir and check for differences		
+		md5 = findmd5(lastpath)
+		hasnew = False
+		with open(md5, 'r') as readfile:
+			lines  = readfile.read()
+			for file in filelist:
+				p = subprocess.Popen(['md5sum', file], stdout=subprocess.PIPE, stderr=open(log, 'a'))
+				out = p.stdout.read()
+				if re.search(out, lines) == None:
+					hasnew = True
+					out = out.split()
+					out = out[1]
+					message = 'A new file from last diff backup has been found: ' + out
+					writemessage(log,message)
+				
+		if hasnew == False:
+			message = 'There is no differences between this and last diff backup'
+			return writemessage(log, message)
+		elif bpaths.index(lastpath)==len(bpaths)-1:
+			newpath = bpaths[0]
+		else:
+			newpath = bpaths[bpaths.index(lastpath)+1]
+			
+	message = 'Path to backup: ' + newpath
+        writemessage(log, message)
+				 
+
+  	#Make md5 file
+        today = newpath+"/diff/md5-"+str(date.today())
 
 
         #Remove files from backup dir
-        if os.path.exists(lastpath+'/diff') == False:
-                message = 'Make a new dir for full backup. Path: ' + lastpath+'/diff'
+        if os.path.exists(newpath+'/diff') == False:
+                message = 'Make a new dir for diff backup. Path: ' + newpath+'/diff'
                 writemessage(log, message)
-                subprocess.call(["mkdir", "-p", lastpath+'/diff'], stderr = open(log, 'a'))
+                subprocess.call(["mkdir", "-p", newpath+'/diff'], stderr = open(log, 'a'))
         else:
                 message = 'Remove old data from backup dir...'
                 writemessage(log, message)
-                subprocess.call(["rm", '-rf', lastpath,'/diff/*'], stderr = open(log, 'a'))
+		
+                subprocess.call(["rm", '-rf', newpath], stderr = open(log, 'a'))
+		subprocess.call(["mkdir", "-p", newpath+'/diff'], stderr = open(log, 'a'))
         os.system("touch %s" % today)
 
  #Copy and put data into md5 file
+	message = 'Starting diff backup...'
+        writemessage(log,message)
+
         for file in filelist:
-                message = 'Starting full backup...'
-                writemessage(log,message)
-                subprocess.call(['cp', '-a', file, lastpath+'/diff'], stderr = open(log, 'a'))
-                message = 'Making md5 file...'
-                writemessage(log, message)
+                subprocess.call(['cp', '-a', file, newpath+'/diff'], stderr = open(log, 'a'))
                 if os.path.isfile(file) == True:
-                        print('File:' + file)
                         subprocess.call(['md5sum', file], stdout=open(today, 'a'), stderr = open(log, 'a'))
                 else:
                         for d, dirs, files in os.walk(file):
                                 for f in files:
                                         path = os.path.join(d,f)
-                                        print(path)
-                                        print('Path: ' + path)
 					subprocess.call(['md5sum', path], stdout=open(today, 'a'), stderr=open(log, 'a'))
 
 
@@ -114,6 +147,14 @@ def parsefile(str, parsefile):
                         if res != None:
                                 return res.group()
 
+def findmd5(path):
+        path = path + '/diff'
+        md5 = os.listdir(path)
+        for i in md5:
+                if "md5-" in i:
+                        md5 = i
+        path = path+"/"+md5
+        return path
 
 
 
