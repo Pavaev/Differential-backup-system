@@ -10,7 +10,11 @@ def backup():
         #Log block
         log = parsefile("^logfile:.*", config)
         if log == None:
-                print('There is an error with logfile! Check your backup.conf')
+                print('There is an error with logfile! Check your backup.conf. Using /var/log/backup.log as default')
+		log = 'var/log/backup.log'
+		if os.path.exists(log)==False:
+                        os.system('touch %s' % log)
+
         log = log.split(':')
         log = log[1]
 

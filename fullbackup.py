@@ -8,7 +8,11 @@ def copy():
 	#Log block
         log = parsefile("^logfile:.*", config)
         if log == None:
-        	print('There is an error with logfile! Check your backup.conf')
+        	print('There is an error with logfile! Check your backup.conf. Using default: /var/log/backup.log')
+		log = '/var/log/backup.log'
+		if os.path.exists(log)==False:
+                        os.system('touch %s' % log)
+
         log = log.split(':')
         log = log[1]
         message = 'Preparing for full backup... '
@@ -20,9 +24,16 @@ def copy():
 	message = 'Files for backup: '
 	writemessage(log, message + filelist)
 	full = parsefile("full:.*:", config)
+        if full == None:
+                message = 'There is an error in your backup.conf with full'
+                writemessage(log, message)
+
 	full = full.split(":")
 	full = full[1]
-	full = full+"/fullbackup"
+
+
+	full = full+"/fullbackup"	
+
 	message = 'Backup into: '
 	writemessage(log, message + full)
 	
