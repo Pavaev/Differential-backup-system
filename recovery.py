@@ -84,7 +84,7 @@ def recover():
                                 break
 		lastpath = lastpath+"/diff/files.backup"
 		
-	diff = parce_for_recover(file_p)
+	diff = parce_for_recover(lastpath)
         if diff == None:
                 message = 'There is an error in files.config in diff backup'
                 return writemessage(log, message)
@@ -94,28 +94,27 @@ def recover():
         else:
                 message = 'Files from last diff backup has been found'
                 writemessage(log, message)
-
 	recover.extend(diff)
 
 
 	if len(recover)==0:
 		message = 'Nothing to recover'
 		return writemessage(log, message)
-
 	message = 'Starting recover...'
-	writemessage(log, message)
-	
-
+	writemessage(log, message)	
 	for cortage in recover:
-		
+		print(cortage[0])						
 		temp = cortage[0]
 		temp = temp.split('/')
 		temp.pop()
 		temp = '/'.join(temp)
 		if os.path.exists(temp)==False:
-			subprocess.call(['mkdir', '-p', temp], stderr = open(log, 'a'))		
-		subprocess.Popen(['cp', '-a', cortage[1], cortage[0]], stderr = open(log, 'a'))
-
+			subprocess.call(['mkdir', '-p', temp], stderr = open(log, 'a'))
+		os.system('rm -rf %s' % cortage[0])		
+		subprocess.call(['cp', '-a', cortage[1], cortage[0]], stderr = open(log, 'a'))
+		del cortage
+	message = 'Recover has been completed successfully'
+	writemessage(log,message)
 
 
 def parsefile(str, config):
