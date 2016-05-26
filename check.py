@@ -3,7 +3,7 @@ import re, os, subprocess
 from datetime import datetime
 
 def check():
-	config = 'backup.conf'
+	config = '/home/user/backup.conf'
 
 
 	#Log block

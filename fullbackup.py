@@ -3,7 +3,7 @@ import os,re,subprocess, check
 from datetime import date, datetime
 def copy():
 	
-	config = 'backup.conf'
+	config = '/home/user/backup.conf'
 
 	#Log block
         log = parsefile("^logfile:.*", config)
@@ -12,9 +12,9 @@ def copy():
 		log = '/var/log/backup.log'
 		if os.path.exists(log)==False:
                         os.system('touch %s' % log)
-
-        log = log.split(':')
-        log = log[1]
+	else:
+        	log = log.split(':')
+        	log = log[1]
         message = 'Preparing for full backup... '
         writemessage(log, message)
 

@@ -6,7 +6,7 @@ from os import path
 
 def backup(): 
 
-	config = 'backup.conf'
+	config = '/home/user/backup.conf'
         #Log block
         log = parsefile("^logfile:.*", config)
         if log == None:

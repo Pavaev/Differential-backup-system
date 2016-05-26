@@ -6,7 +6,7 @@ from datetime import datetime
 
 def recover():
 
-	config = 'backup.conf'
+	config = '/home/user/backup.conf'
 
 	 #Log block
         log = parsefile("^logfile:.*", config)
